@@ -36,7 +36,7 @@
         <div class="metric-icon icon-cyan">🏆</div>
         <div>
             <div class="metric-label">Overall Average Score</div>
-            <div class="metric-value" style="color: {% if avg_score >= 80 %}var(--accent){% elif avg_score >= 60 %}var(--warning){% else %}var(--text-main){% endif %};">
+            <div class="metric-value {% if avg_score >= 80 %}score-high{% elif avg_score >= 60 %}score-medium{% else %}score-normal{% endif %}">
                 {{ avg_score }}<span style="font-size: 1.1rem; color: var(--text-muted);">/100</span>
             </div>
         </div>
@@ -134,7 +134,7 @@
                             <td>{{ interview.difficulty }}</td>
                             <td>
                                 {% if interview.status == 'completed' and interview.overall_score != none %}
-                                    <strong style="color: {% if interview.overall_score >= 80 %}var(--accent){% elif interview.overall_score >= 65 %}var(--warning){% else %}var(--danger){% endif %};">
+                                    <strong class="{% if interview.overall_score >= 80 %}score-high{% elif interview.overall_score >= 65 %}score-medium{% else %}score-low{% endif %}">
                                         {{ interview.overall_score }} / 100
                                     </strong>
                                 {% else %}

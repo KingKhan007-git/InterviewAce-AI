@@ -642,3 +642,12 @@ footer {
     font-size: 0.9rem;
     margin-top: 3rem;
 }
+
+/* --- Dynamic Score & Display Utility Classes --- */
+.score-high { color: var(--accent); }
+.score-medium { color: var(--warning); }
+.score-low { color: var(--danger); }
+.score-normal { color: var(--text-main); }
+.step-hidden { display: none; }
+.step-visible { display: block; }
+

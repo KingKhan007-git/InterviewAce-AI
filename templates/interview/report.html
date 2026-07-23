@@ -7,7 +7,7 @@
     <!-- Report Executive Summary Header -->
     <div class="glass-card" style="text-align: center; padding: 2.5rem 1.5rem; margin-bottom: 2rem; background: linear-gradient(135deg, rgba(99, 102, 241, 0.1), rgba(52, 211, 153, 0.1));">
         <div class="score-circle" style="--score-deg: {{ (interview.overall_score or 0) * 3.6 }};">
-            <span class="score-number" style="color: {% if (interview.overall_score or 0) >= 80 %}var(--accent){% elif (interview.overall_score or 0) >= 65 %}var(--warning){% else %}var(--danger){% endif %};">
+            <span class="score-number {% if (interview.overall_score or 0) >= 80 %}score-high{% elif (interview.overall_score or 0) >= 65 %}score-medium{% else %}score-low{% endif %}">
                 {{ interview.overall_score or 0 }}
             </span>
         </div>

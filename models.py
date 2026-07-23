@@ -16,6 +16,15 @@ class User(db.Model):
     
     interviews = db.relationship('Interview', backref='user', lazy='dynamic', cascade='all, delete-orphan')
 
+    def __init__(self, username=None, email=None, password_hash=None, **kwargs):
+        super().__init__(**kwargs)
+        if username:
+            self.username = username
+        if email:
+            self.email = email
+        if password_hash:
+            self.password_hash = password_hash
+
     def set_password(self, password):
         self.password_hash = generate_password_hash(password)
 
@@ -48,6 +57,20 @@ class Interview(db.Model):
     created_at = db.Column(db.DateTime, default=lambda: datetime.now(timezone.utc))
     
     questions = db.relationship('Question', backref='interview', lazy='joined', cascade='all, delete-orphan', order_by='Question.question_order')
+
+    def __init__(self, user_id=None, title=None, role=None, difficulty='Medium', interview_type='role', resume_filename=None, status='in_progress', **kwargs):
+        super().__init__(**kwargs)
+        if user_id is not None:
+            self.user_id = user_id
+        if title is not None:
+            self.title = title
+        if role is not None:
+            self.role = role
+        self.difficulty = difficulty
+        self.interview_type = interview_type
+        if resume_filename is not None:
+            self.resume_filename = resume_filename
+        self.status = status
 
     @property
     def strengths(self):
@@ -107,6 +130,17 @@ class Question(db.Model):
     score = db.Column(db.Integer, nullable=True) # 0-100 per question
     feedback = db.Column(db.Text, nullable=True)
     improvement_tips = db.Column(db.Text, nullable=True)
+
+    def __init__(self, interview_id=None, question_order=None, question_text=None, model_answer=None, **kwargs):
+        super().__init__(**kwargs)
+        if interview_id is not None:
+            self.interview_id = interview_id
+        if question_order is not None:
+            self.question_order = question_order
+        if question_text is not None:
+            self.question_text = question_text
+        if model_answer is not None:
+            self.model_answer = model_answer
 
     def to_dict(self):
         return {

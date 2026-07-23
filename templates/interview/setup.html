@@ -178,7 +178,7 @@
     function handleFileSelected(input) {
         if (input.files.length > 0) {
             const file = input.files[0];
-            if (!file.name.toLowerCase().endswith('.pdf') && !file.type.includes('pdf')) {
+            if (!file.name.toLowerCase().endsWith('.pdf') && !file.type.includes('pdf')) {
                 alert('Please select a valid PDF file.');
                 input.value = '';
                 return;

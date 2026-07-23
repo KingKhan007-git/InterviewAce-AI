@@ -22,6 +22,51 @@ class TestInterviewAceAI(unittest.TestCase):
             db.session.remove()
             db.drop_all()
 
+    def test_demo_user_seeding_and_login(self):
+        # Demo account should exist and work out of the box
+        res = self.client.post('/login', data={
+            'email_or_user': 'demo_user',
+            'password': 'password123'
+        }, follow_redirects=True)
+        self.assertEqual(res.status_code, 200)
+        self.assertIn(b'Welcome back, demo_user', res.data)
+
+    def test_case_insensitive_login(self):
+        # Case insensitive email / username login
+        res = self.client.post('/login', data={
+            'email_or_user': 'DEMO_USER',
+            'password': 'password123'
+        }, follow_redirects=True)
+        self.assertEqual(res.status_code, 200)
+        self.assertIn(b'Welcome back, demo_user', res.data)
+
+        # Logout
+        self.client.get('/logout')
+
+        res = self.client.post('/login', data={
+            'email_or_user': 'DEMO@EXAMPLE.COM',
+            'password': 'password123'
+        }, follow_redirects=True)
+        self.assertEqual(res.status_code, 200)
+        self.assertIn(b'Welcome back, demo_user', res.data)
+
+    def test_login_failure_messages(self):
+        # Non-existent user
+        res = self.client.post('/login', data={
+            'email_or_user': 'nonexistent_user',
+            'password': 'password123'
+        }, follow_redirects=True)
+        self.assertEqual(res.status_code, 200)
+        self.assertIn(b'No account found matching', res.data)
+
+        # Correct username, wrong password
+        res = self.client.post('/login', data={
+            'email_or_user': 'demo_user',
+            'password': 'wrongpassword'
+        }, follow_redirects=True)
+        self.assertEqual(res.status_code, 200)
+        self.assertIn(b'Incorrect password', res.data)
+
     def test_user_registration_and_login(self):
         # Register user
         res = self.client.post('/register', data={
@@ -40,7 +85,8 @@ class TestInterviewAceAI(unittest.TestCase):
         # Login
         res = self.client.post('/login', data={
             'email_or_user': 'test@example.com',
-            'password': 'password123'
+            'password': 'password123',
+            'remember_me': 'on'
         }, follow_redirects=True)
         self.assertEqual(res.status_code, 200)
         self.assertIn(b'Welcome back', res.data)

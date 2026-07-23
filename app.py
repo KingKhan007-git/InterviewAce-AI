@@ -33,11 +33,16 @@ def create_app():
 
     with app.app_context():
         db.create_all()
-        # Seed default demo account if table is empty
-        if not User.query.first():
+        # Seed or refresh default demo account
+        from sqlalchemy import func
+        demo = User.query.filter(func.lower(User.username) == 'demo_user').first()
+        if not demo:
             demo = User(username='demo_user', email='demo@example.com')
             demo.set_password('password123')
             db.session.add(demo)
+            db.session.commit()
+        elif not demo.check_password('password123'):
+            demo.set_password('password123')
             db.session.commit()
 
     # Authentication Helper Decorator
@@ -85,8 +90,8 @@ def create_app():
         if request.method == 'POST':
             username = request.form.get('username', '').strip()
             email = request.form.get('email', '').strip().lower()
-            password = request.form.get('password', '').strip()
-            confirm_password = request.form.get('confirm_password', '').strip()
+            password = request.form.get('password', '')
+            confirm_password = request.form.get('confirm_password', '')
 
             if not username or not email or not password:
                 flash('All fields are required.', 'danger')
@@ -100,11 +105,12 @@ def create_app():
                 flash('Password must be at least 6 characters long.', 'danger')
                 return render_template('auth/register.html')
 
-            if User.query.filter_by(username=username).first():
+            from sqlalchemy import func
+            if User.query.filter(func.lower(User.username) == username.lower()).first():
                 flash('Username already taken. Please choose another.', 'danger')
                 return render_template('auth/register.html')
 
-            if User.query.filter_by(email=email).first():
+            if User.query.filter(func.lower(User.email) == email.lower()).first():
                 flash('Email already registered. Please login.', 'danger')
                 return render_template('auth/register.html')
 
@@ -127,7 +133,12 @@ def create_app():
 
         if request.method == 'POST':
             email_or_user = request.form.get('email_or_user', '').strip()
-            password = request.form.get('password', '').strip()
+            password = request.form.get('password', '')
+            remember_me = request.form.get('remember_me')
+
+            if not email_or_user or not password:
+                flash('Please enter both your email/username and password.', 'warning')
+                return render_template('auth/login.html')
 
             from sqlalchemy import func
             user = User.query.filter(
@@ -135,11 +146,18 @@ def create_app():
                 (func.lower(User.username) == email_or_user.lower())
             ).first()
 
-            if not user or not user.check_password(password):
-                flash('Invalid email/username or password.', 'danger')
+            if not user:
+                flash('No account found matching that email or username. Please check your spelling or register a new account.', 'danger')
+                return render_template('auth/login.html')
+
+            if not user.check_password(password):
+                flash('Incorrect password. Please verify your password and try again.', 'danger')
                 return render_template('auth/login.html')
 
             session['user_id'] = user.id
+            if remember_me:
+                session.permanent = True
+            
             flash(f'Welcome back, {user.username}!', 'success')
             next_page = request.args.get('next')
             return redirect(next_page if next_page else url_for('dashboard'))

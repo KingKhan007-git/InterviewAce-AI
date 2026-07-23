@@ -33,7 +33,7 @@
 
     <!-- Question Cards -->
     {% for q in interview.questions %}
-        <div class="question-step-card glass-card" data-index="{{ loop.index0 }}" data-question-id="{{ q.id }}" style="display: {% if loop.first %}block{% else %}none{% endif %};">
+        <div class="question-step-card glass-card {% if loop.first %}step-visible{% else %}step-hidden{% endif %}" data-index="{{ loop.index0 }}" data-question-id="{{ q.id }}">
             <div style="margin-bottom: 1.5rem; padding-bottom: 1rem; border-bottom: 1px solid var(--glass-border);">
                 <span class="badge badge-info" style="margin-bottom: 0.75rem;">Question {{ loop.index }}</span>
                 <h3 style="font-size: 1.3rem; font-weight: 600; line-height: 1.5;">
