@@ -1,0 +1,175 @@
+{% extends 'base.html' %}
+
+{% block title %}Dashboard - InterviewAce AI{% endblock %}
+
+{% block content %}
+<!-- Welcome Banner -->
+<div class="glass-card" style="margin-bottom: 2rem; background: linear-gradient(135deg, rgba(99, 102, 241, 0.1), rgba(34, 211, 238, 0.1)); border-color: rgba(99, 102, 241, 0.25);">
+    <div style="display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 1.5rem;">
+        <div>
+            <h1 style="font-size: 2.2rem; margin-bottom: 0.4rem;">
+                Welcome Back, <span style="background: linear-gradient(135deg, var(--primary), var(--secondary)); -webkit-background-clip: text; -webkit-text-fill-color: transparent;">{{ current_user.username }}</span>! 👋
+            </h1>
+            <p style="color: var(--text-muted); font-size: 1.05rem;">
+                Track your interview readiness, review AI feedback history, and start new mock interviews.
+            </p>
+        </div>
+        <div>
+            <a href="{{ url_for('interview_setup') }}" class="btn btn-primary btn-lg">
+                🚀 Start New Interview
+            </a>
+        </div>
+    </div>
+</div>
+
+<!-- Metrics Overview Cards -->
+<div class="metrics-grid">
+    <div class="glass-card metric-card">
+        <div class="metric-icon icon-indigo">🎯</div>
+        <div>
+            <div class="metric-label">Completed Interviews</div>
+            <div class="metric-value">{{ total_interviews }}</div>
+        </div>
+    </div>
+
+    <div class="glass-card metric-card">
+        <div class="metric-icon icon-cyan">🏆</div>
+        <div>
+            <div class="metric-label">Overall Average Score</div>
+            <div class="metric-value" style="color: {% if avg_score >= 80 %}var(--accent){% elif avg_score >= 60 %}var(--warning){% else %}var(--text-main){% endif %};">
+                {{ avg_score }}<span style="font-size: 1.1rem; color: var(--text-muted);">/100</span>
+            </div>
+        </div>
+    </div>
+
+    <div class="glass-card metric-card">
+        <div class="metric-icon icon-emerald">📈</div>
+        <div>
+            <div class="metric-label">Readiness Status</div>
+            <div class="metric-value" style="font-size: 1.4rem;">
+                {% if avg_score >= 80 %}
+                    <span class="badge badge-success">Interview Ready</span>
+                {% elif avg_score >= 65 %}
+                    <span class="badge badge-info">Getting Ready</span>
+                {% else %}
+                    <span class="badge badge-warning">Needs Practice</span>
+                {% endif %}
+            </div>
+        </div>
+    </div>
+
+    <div class="glass-card metric-card">
+        <div class="metric-icon icon-amber">💡</div>
+        <div>
+            <div class="metric-label">AI Engine Mode</div>
+            <div class="metric-value" style="font-size: 1.2rem;">
+                {% if has_gemini_key %}
+                    <span class="badge badge-success">Gemini Live AI</span>
+                {% else %}
+                    <span class="badge badge-warning">Simulated AI Mode</span>
+                {% endif %}
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Analytics Charts Section -->
+<div class="analytics-grid">
+    <!-- Score Trend Chart -->
+    <div class="glass-card">
+        <div class="chart-header">
+            <h3>📈 Score Performance History</h3>
+            <span class="badge badge-info">Latest Sessions</span>
+        </div>
+        <div style="position: relative; height: 260px; width: 100%;">
+            <canvas id="scoreTrendChart"></canvas>
+        </div>
+    </div>
+
+    <!-- Role Score Breakdown Chart -->
+    <div class="glass-card">
+        <div class="chart-header">
+            <h3>📊 Average Score by Role</h3>
+        </div>
+        <div style="position: relative; height: 260px; width: 100%;">
+            <canvas id="roleScoreChart"></canvas>
+        </div>
+    </div>
+</div>
+
+<!-- Recent Interviews Section -->
+<div class="glass-card">
+    <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 1.5rem;">
+        <h3>📋 Recent Interview Sessions</h3>
+        <a href="{{ url_for('history') }}" class="btn btn-secondary btn-sm">View All History</a>
+    </div>
+
+    {% if recent_interviews %}
+        <div class="table-responsive">
+            <table class="custom-table">
+                <thead>
+                    <tr>
+                        <th>Date & Time</th>
+                        <th>Interview Role</th>
+                        <th>Type</th>
+                        <th>Difficulty</th>
+                        <th>Overall Score</th>
+                        <th>Action</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for interview in recent_interviews %}
+                        <tr>
+                            <td>{{ interview.created_at.strftime('%b %d, %Y') }}</td>
+                            <td>
+                                <strong>{{ interview.role }}</strong>
+                            </td>
+                            <td>
+                                {% if interview.interview_type == 'resume' %}
+                                    <span class="badge badge-info">📄 Resume</span>
+                                {% else %}
+                                    <span class="badge badge-success">🎯 Role</span>
+                                {% endif %}
+                            </td>
+                            <td>{{ interview.difficulty }}</td>
+                            <td>
+                                {% if interview.status == 'completed' and interview.overall_score != none %}
+                                    <strong style="color: {% if interview.overall_score >= 80 %}var(--accent){% elif interview.overall_score >= 65 %}var(--warning){% else %}var(--danger){% endif %};">
+                                        {{ interview.overall_score }} / 100
+                                    </strong>
+                                {% else %}
+                                    <span class="badge badge-warning">In Progress</span>
+                                {% endif %}
+                            </td>
+                            <td>
+                                {% if interview.status == 'completed' %}
+                                    <a href="{{ url_for('interview_report', interview_id=interview.id) }}" class="btn btn-primary btn-sm">
+                                        View Feedback
+                                    </a>
+                                {% else %}
+                                    <a href="{{ url_for('interview_session', interview_id=interview.id) }}" class="btn btn-secondary btn-sm">
+                                        Continue
+                                    </a>
+                                {% endif %}
+                            </td>
+                        </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+    {% else %}
+        <div style="text-align: center; padding: 3rem 1rem;">
+            <div style="font-size: 3rem; margin-bottom: 1rem;">🎯</div>
+            <h4>No Mock Interviews Taken Yet</h4>
+            <p style="color: var(--text-muted); margin-bottom: 1.5rem;">Start your first AI mock interview to test your technical skills and get instant feedback!</p>
+            <a href="{{ url_for('interview_setup') }}" class="btn btn-primary">
+                Take Your First Interview
+            </a>
+        </div>
+    {% endif %}
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script src="{{ url_for('static', filename='js/dashboard.js') }}"></script>
+{% endblock %}

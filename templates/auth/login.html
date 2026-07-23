@@ -1,0 +1,43 @@
+{% extends 'base.html' %}
+
+{% block title %}Login - InterviewAce AI{% endblock %}
+
+{% block content %}
+<div style="max-width: 440px; margin: 3rem auto;">
+    <div class="glass-card">
+        <div style="text-align: center; margin-bottom: 2rem;">
+            <div class="brand-icon" style="margin: 0 auto 1rem auto; width: 50px; height: 50px; font-size: 1.5rem;">🔑</div>
+            <h2 style="font-size: 1.8rem;">Welcome Back</h2>
+            <p style="color: var(--text-muted); font-size: 0.9rem;">Sign in to access your interview dashboard & history</p>
+        </div>
+
+        <div style="margin-bottom: 1.5rem; padding: 0.85rem 1rem; background: rgba(99, 102, 241, 0.1); border: 1px solid rgba(99, 102, 241, 0.25); border-radius: var(--radius-md); font-size: 0.85rem; color: var(--text-muted); text-align: center;">
+            💡 <strong>Quick Demo Account:</strong><br>
+            Username / Email: <code style="color: var(--secondary);">demo_user</code> &nbsp;|&nbsp; Password: <code style="color: var(--secondary);">password123</code>
+        </div>
+
+        <form method="POST" action="{{ url_for('login') }}">
+            <div class="form-group">
+                <label class="form-label" for="email_or_user">Email Address or Username</label>
+                <input type="text" id="email_or_user" name="email_or_user" class="form-control" placeholder="candidate@example.com" required autofocus>
+            </div>
+
+            <div class="form-group">
+                <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 0.5rem;">
+                    <label class="form-label" for="password" style="margin-bottom: 0;">Password</label>
+                </div>
+                <input type="password" id="password" name="password" class="form-control" placeholder="••••••••" required>
+            </div>
+
+            <button type="submit" class="btn btn-primary" style="width: 100%; margin-top: 1rem; padding: 0.85rem;">
+                Sign In to Account
+            </button>
+        </form>
+
+        <div style="text-align: center; margin-top: 1.75rem; padding-top: 1.25rem; border-top: 1px solid var(--glass-border); font-size: 0.9rem; color: var(--text-muted);">
+            Don't have an account yet? 
+            <a href="{{ url_for('register') }}" style="font-weight: 600; color: var(--primary);">Register Now</a>
+        </div>
+    </div>
+</div>
+{% endblock %}

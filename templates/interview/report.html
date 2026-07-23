@@ -1,0 +1,130 @@
+{% extends 'base.html' %}
+
+{% block title %}Evaluation Report - {{ interview.title }} | InterviewAce AI{% endblock %}
+
+{% block content %}
+<div style="max-width: 960px; margin: 1rem auto;">
+    <!-- Report Executive Summary Header -->
+    <div class="glass-card" style="text-align: center; padding: 2.5rem 1.5rem; margin-bottom: 2rem; background: linear-gradient(135deg, rgba(99, 102, 241, 0.1), rgba(52, 211, 153, 0.1));">
+        <div class="score-circle" style="--score-deg: {{ (interview.overall_score or 0) * 3.6 }};">
+            <span class="score-number" style="color: {% if (interview.overall_score or 0) >= 80 %}var(--accent){% elif (interview.overall_score or 0) >= 65 %}var(--warning){% else %}var(--danger){% endif %};">
+                {{ interview.overall_score or 0 }}
+            </span>
+        </div>
+        
+        <div class="badge badge-info" style="margin-bottom: 1rem; font-size: 0.95rem; padding: 0.35rem 1rem;">
+            Overall Score out of 100
+        </div>
+
+        <h1 style="font-size: 2.2rem; margin-bottom: 0.5rem;">{{ interview.title }} Report</h1>
+        <p style="color: var(--text-muted); font-size: 0.95rem; margin-bottom: 1.5rem;">
+            Completed on {{ interview.created_at.strftime('%B %d, %Y at %I:%M %p') if interview.created_at else 'Recent' }}
+        </p>
+
+        <div style="max-width: 760px; margin: 0 auto; background: var(--bg-secondary); padding: 1.25rem 1.5rem; border-radius: var(--radius-md); border: 1px solid var(--glass-border); text-align: left;">
+            <strong style="color: var(--primary); font-size: 1.05rem;">📋 Executive AI Summary:</strong>
+            <p style="margin-top: 0.4rem; line-height: 1.6; color: var(--text-main);">
+                {{ interview.summary_feedback }}
+            </p>
+        </div>
+    </div>
+
+    <!-- Strengths & Weaknesses Grid -->
+    <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(320px, 1fr)); gap: 1.5rem; margin-bottom: 2.5rem;">
+        <!-- Strengths -->
+        <div class="glass-card" style="border-left: 4px solid var(--accent);">
+            <h3 style="display: flex; align-items: center; gap: 0.5rem; color: var(--accent); margin-bottom: 1rem;">
+                💪 Key Strengths
+            </h3>
+            <ul style="list-style: none; display: flex; flex-direction: column; gap: 0.75rem;">
+                {% for item in interview.strengths %}
+                    <li style="display: flex; gap: 0.5rem; align-items: flex-start; font-size: 0.95rem;">
+                        <span style="color: var(--accent);">✅</span>
+                        <span>{{ item }}</span>
+                    </li>
+                {% else %}
+                    <li style="color: var(--text-muted);">Solid overall participation.</li>
+                {% endfor %}
+            </ul>
+        </div>
+
+        <!-- Areas for Improvement -->
+        <div class="glass-card" style="border-left: 4px solid var(--warning);">
+            <h3 style="display: flex; align-items: center; gap: 0.5rem; color: var(--warning); margin-bottom: 1rem;">
+                🎯 Areas for Growth
+            </h3>
+            <ul style="list-style: none; display: flex; flex-direction: column; gap: 0.75rem;">
+                {% for item in interview.weaknesses %}
+                    <li style="display: flex; gap: 0.5rem; align-items: flex-start; font-size: 0.95rem;">
+                        <span style="color: var(--warning);">⚠️</span>
+                        <span>{{ item }}</span>
+                    </li>
+                {% else %}
+                    <li style="color: var(--text-muted);">No critical flaws identified.</li>
+                {% endfor %}
+            </ul>
+        </div>
+    </div>
+
+    <!-- Question by Question Analysis -->
+    <h2 style="font-size: 1.8rem; margin-bottom: 1.5rem;">Question-by-Question AI Analysis</h2>
+
+    <div style="display: flex; flex-direction: column; gap: 1.5rem; margin-bottom: 3rem;">
+        {% for q in interview.questions %}
+            <div class="glass-card">
+                <div style="display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 1rem; flex-wrap: wrap; gap: 0.5rem;">
+                    <div>
+                        <span class="badge badge-info" style="margin-bottom: 0.5rem;">Question {{ q.question_order }}</span>
+                        <h3 style="font-size: 1.2rem; font-weight: 600; line-height: 1.4;">{{ q.question_text }}</h3>
+                    </div>
+                    <div class="badge {% if (q.score or 0) >= 80 %}badge-success{% elif (q.score or 0) >= 65 %}badge-warning{% else %}badge-danger{% endif %}" style="font-size: 1rem; padding: 0.4rem 0.9rem;">
+                        Score: {{ q.score or 0 }} / 100
+                    </div>
+                </div>
+
+                <!-- User Answer -->
+                <div style="margin-bottom: 1rem; background: var(--input-bg); padding: 1rem; border-radius: var(--radius-md); border: 1px solid var(--glass-border);">
+                    <strong style="font-size: 0.85rem; color: var(--text-muted); text-transform: uppercase; letter-spacing: 0.05em;">Your Response:</strong>
+                    <p style="margin-top: 0.4rem; white-space: pre-wrap; font-size: 0.95rem;">
+                        {{ q.user_answer if q.user_answer else '*(No answer submitted)*' }}
+                    </p>
+                </div>
+
+                <!-- AI Evaluation & Tips -->
+                <div style="margin-bottom: 1rem; padding: 1rem; background: rgba(99, 102, 241, 0.08); border-radius: var(--radius-md); border-left: 3px solid var(--primary);">
+                    <strong style="color: var(--primary); font-size: 0.9rem;">🤖 AI Evaluation & Feedback:</strong>
+                    <p style="margin-top: 0.3rem; font-size: 0.95rem; color: var(--text-main);">{{ q.feedback }}</p>
+                    {% if q.improvement_tips %}
+                        <div style="margin-top: 0.6rem; font-size: 0.9rem; color: var(--text-muted);">
+                            💡 <strong>Actionable Tip:</strong> {{ q.improvement_tips }}
+                        </div>
+                    {% endif %}
+                </div>
+
+                <!-- Benchmark Model Answer -->
+                {% if q.model_answer %}
+                    <details style="cursor: pointer; font-size: 0.9rem;">
+                        <summary style="font-weight: 600; color: var(--secondary);">✨ View Benchmark Ideal Answer</summary>
+                        <div style="margin-top: 0.75rem; padding: 1rem; background: var(--bg-tertiary); border-radius: var(--radius-md); border: 1px solid var(--glass-border); line-height: 1.6;">
+                            {{ q.model_answer }}
+                        </div>
+                    </details>
+                {% endif %}
+            </div>
+        {% endfor %}
+    </div>
+
+    <!-- Action Footer -->
+    <div style="display: flex; gap: 1rem; justify-content: center; flex-wrap: wrap;">
+        <a href="{{ url_for('interview_setup') }}" class="btn btn-primary btn-lg">
+            Practice Another Interview 🚀
+        </a>
+        <a href="{{ url_for('dashboard') }}" class="btn btn-secondary btn-lg">
+            Back to Dashboard
+        </a>
+        <button onclick="window.print()" class="btn btn-outline btn-lg">
+            🖨️ Print / Save PDF Report
+        </button>
+    </div>
+</div>
+{% endblock %}

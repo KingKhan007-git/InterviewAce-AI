@@ -1,0 +1,226 @@
+{% extends 'base.html' %}
+
+{% block title %}Setup Mock Interview - InterviewAce AI{% endblock %}
+
+{% block content %}
+<div style="max-width: 800px; margin: 1rem auto;">
+    <div style="text-align: center; margin-bottom: 2.5rem;">
+        <h1 style="font-size: 2.4rem; margin-bottom: 0.5rem;">Configure Your Mock Interview</h1>
+        <p style="color: var(--text-muted); font-size: 1.05rem;">
+            Choose a target technical role or upload your PDF resume for personalized AI question generation.
+        </p>
+    </div>
+
+    <!-- Mode Selector Tabs -->
+    <div style="display: flex; gap: 1rem; margin-bottom: 2rem; border-bottom: 1px solid var(--glass-border); padding-bottom: 1rem;">
+        <button id="tabRoleBtn" onclick="switchSetupTab('role')" class="btn btn-primary" style="flex: 1; justify-content: center; font-size: 1.05rem;">
+            🎯 Role-Based Setup
+        </button>
+        <button id="tabResumeBtn" onclick="switchSetupTab('resume')" class="btn btn-secondary" style="flex: 1; justify-content: center; font-size: 1.05rem;">
+            📄 Resume-Based Setup
+        </button>
+    </div>
+
+    <!-- Form 1: Role-Based Setup -->
+    <div id="roleSetupForm" class="glass-card">
+        <form id="createRoleForm">
+            <input type="hidden" name="interview_type" value="role">
+            
+            <div class="form-group">
+                <label class="form-label" style="font-size: 1.05rem;">Select Target Interview Role</label>
+                <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(220px, 1fr)); gap: 1rem; margin-top: 0.75rem;">
+                    <label class="role-option-card glass-card" style="padding: 1.25rem; cursor: pointer; text-align: center; border: 2px solid var(--primary);">
+                        <input type="radio" name="role" value="Java Developer" checked style="display: none;" onchange="highlightRoleCard(this)">
+                        <div style="font-size: 2rem; margin-bottom: 0.5rem;">☕</div>
+                        <div style="font-weight: 700;">Java Developer</div>
+                        <div style="font-size: 0.8rem; color: var(--text-muted); margin-top: 0.25rem;">Spring, Multithreading, JVM</div>
+                    </label>
+
+                    <label class="role-option-card glass-card" style="padding: 1.25rem; cursor: pointer; text-align: center;">
+                        <input type="radio" name="role" value="Python Developer" style="display: none;" onchange="highlightRoleCard(this)">
+                        <div style="font-size: 2rem; margin-bottom: 0.5rem;">🐍</div>
+                        <div style="font-weight: 700;">Python Developer</div>
+                        <div style="font-size: 0.8rem; color: var(--text-muted); margin-top: 0.25rem;">Django/Flask, GIL, AsyncIO</div>
+                    </label>
+
+                    <label class="role-option-card glass-card" style="padding: 1.25rem; cursor: pointer; text-align: center;">
+                        <input type="radio" name="role" value="Web Developer" style="display: none;" onchange="highlightRoleCard(this)">
+                        <div style="font-size: 2rem; margin-bottom: 0.5rem;">🌐</div>
+                        <div style="font-weight: 700;">Web Developer</div>
+                        <div style="font-size: 0.8rem; color: var(--text-muted); margin-top: 0.25rem;">HTML/CSS, JS, REST APIs</div>
+                    </label>
+
+                    <label class="role-option-card glass-card" style="padding: 1.25rem; cursor: pointer; text-align: center;">
+                        <input type="radio" name="role" value="HR Interview" style="display: none;" onchange="highlightRoleCard(this)">
+                        <div style="font-size: 2rem; margin-bottom: 0.5rem;">💼</div>
+                        <div style="font-weight: 700;">HR & Behavioral</div>
+                        <div style="font-size: 0.8rem; color: var(--text-muted); margin-top: 0.25rem;">STAR method, Conflict, Culture</div>
+                    </label>
+                </div>
+            </div>
+
+            <div class="form-group" style="margin-top: 2rem;">
+                <label class="form-label">Select Difficulty Level</label>
+                <div style="display: flex; gap: 1rem; flex-wrap: wrap;">
+                    <label class="btn btn-secondary diff-btn" style="flex: 1; cursor: pointer; text-align: center;">
+                        <input type="radio" name="difficulty" value="Easy" style="display: none;" onchange="updateDiffState(this)"> 🟢 Easy
+                    </label>
+                    <label class="btn btn-primary diff-btn" style="flex: 1; cursor: pointer; text-align: center;">
+                        <input type="radio" name="difficulty" value="Medium" checked style="display: none;" onchange="updateDiffState(this)"> 🟡 Medium
+                    </label>
+                    <label class="btn btn-secondary diff-btn" style="flex: 1; cursor: pointer; text-align: center;">
+                        <input type="radio" name="difficulty" value="Hard" style="display: none;" onchange="updateDiffState(this)"> 🔴 Hard
+                    </label>
+                </div>
+            </div>
+
+            <button type="submit" class="btn btn-primary btn-lg" style="width: 100%; margin-top: 2rem;">
+                Generate Dynamic AI Questions ⚡
+            </button>
+        </form>
+    </div>
+
+    <!-- Form 2: Resume-Based Setup -->
+    <div id="resumeSetupForm" class="glass-card" style="display: none;">
+        <form id="createResumeForm" enctype="multipart/form-data">
+            <input type="hidden" name="interview_type" value="resume">
+
+            <div style="text-align: center; margin-bottom: 1.5rem;">
+                <h3 style="margin-bottom: 0.5rem;">Upload Your Resume (PDF)</h3>
+                <p style="color: var(--text-muted); font-size: 0.9rem;">
+                    Gemini AI will extract your skills, past projects, and technical experience to build custom tailored interview questions.
+                </p>
+            </div>
+
+            <div id="dropzone" style="border: 2px dashed var(--primary); border-radius: var(--radius-lg); padding: 3rem 1.5rem; text-align: center; background: var(--input-bg); cursor: pointer; transition: var(--transition);">
+                <div style="font-size: 3rem; margin-bottom: 1rem;">📄</div>
+                <h4 style="margin-bottom: 0.5rem;" id="dropzoneText">Drag & Drop PDF Resume here, or Click to Browse</h4>
+                <p style="font-size: 0.85rem; color: var(--text-muted);">Only PDF files allowed (Max 16MB)</p>
+                <input type="file" id="resumeFileInput" name="resume_file" accept=".pdf" style="display: none;" onchange="handleFileSelected(this)">
+            </div>
+
+            <button type="submit" id="submitResumeBtn" class="btn btn-primary btn-lg" style="width: 100%; margin-top: 2rem;" disabled>
+                Analyze Resume & Generate Questions ⚡
+            </button>
+        </form>
+    </div>
+</div>
+
+<!-- Loading Overlay -->
+<div id="loadingOverlay" class="loading-overlay">
+    <div class="spinner"></div>
+    <h2 style="margin-bottom: 0.5rem;" id="loadingTitle">Generating Interview Questions...</h2>
+    <p style="color: var(--text-muted);" id="loadingSubtitle">Consulting Gemini AI to prepare your custom interview room.</p>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+    function switchSetupTab(tab) {
+        const roleBtn = document.getElementById('tabRoleBtn');
+        const resumeBtn = document.getElementById('tabResumeBtn');
+        const roleForm = document.getElementById('roleSetupForm');
+        const resumeForm = document.getElementById('resumeSetupForm');
+
+        if (tab === 'role') {
+            roleBtn.className = 'btn btn-primary';
+            resumeBtn.className = 'btn btn-secondary';
+            roleForm.style.display = 'block';
+            resumeForm.style.display = 'none';
+        } else {
+            roleBtn.className = 'btn btn-secondary';
+            resumeBtn.className = 'btn btn-primary';
+            roleForm.style.display = 'none';
+            resumeForm.style.display = 'block';
+        }
+    }
+
+    function highlightRoleCard(radio) {
+        document.querySelectorAll('.role-option-card').forEach(card => {
+            card.style.borderColor = 'var(--glass-border)';
+        });
+        radio.closest('.role-option-card').style.borderColor = 'var(--primary)';
+    }
+
+    function updateDiffState(radio) {
+        document.querySelectorAll('.diff-btn').forEach(btn => {
+            btn.className = 'btn btn-secondary diff-btn';
+        });
+        radio.closest('.diff-btn').className = 'btn btn-primary diff-btn';
+    }
+
+    // Dropzone logic
+    const dropzone = document.getElementById('dropzone');
+    const fileInput = document.getElementById('resumeFileInput');
+
+    if (dropzone && fileInput) {
+        dropzone.addEventListener('click', () => fileInput.click());
+        dropzone.addEventListener('dragover', (e) => {
+            e.preventDefault();
+            dropzone.style.borderColor = 'var(--accent)';
+            dropzone.style.background = 'var(--primary-light)';
+        });
+        dropzone.addEventListener('dragleave', () => {
+            dropzone.style.borderColor = 'var(--primary)';
+            dropzone.style.background = 'var(--input-bg)';
+        });
+        dropzone.addEventListener('drop', (e) => {
+            e.preventDefault();
+            dropzone.style.borderColor = 'var(--primary)';
+            dropzone.style.background = 'var(--input-bg)';
+            if (e.dataTransfer.files.length > 0) {
+                fileInput.files = e.dataTransfer.files;
+                handleFileSelected(fileInput);
+            }
+        });
+    }
+
+    function handleFileSelected(input) {
+        if (input.files.length > 0) {
+            const file = input.files[0];
+            if (!file.name.toLowerCase().endswith('.pdf') && !file.type.includes('pdf')) {
+                alert('Please select a valid PDF file.');
+                input.value = '';
+                return;
+            }
+            document.getElementById('dropzoneText').innerHTML = `Selected File: <strong>${file.name}</strong> (${(file.size / 1024 / 1024).toFixed(2)} MB)`;
+            document.getElementById('submitResumeBtn').disabled = false;
+        }
+    }
+
+    // Form submission API calls
+    document.getElementById('createRoleForm').addEventListener('submit', function(e) {
+        e.preventDefault();
+        const formData = new FormData(this);
+        submitCreateInterview(formData);
+    });
+
+    document.getElementById('createResumeForm').addEventListener('submit', function(e) {
+        e.preventDefault();
+        const formData = new FormData(this);
+        submitCreateInterview(formData);
+    });
+
+    function submitCreateInterview(formData) {
+        document.getElementById('loadingOverlay').style.display = 'flex';
+        fetch('/api/interview/create', {
+            method: 'POST',
+            body: formData
+        })
+        .then(res => res.json())
+        .then(data => {
+            if (data.success) {
+                window.location.href = data.redirect_url;
+            } else {
+                document.getElementById('loadingOverlay').style.display = 'none';
+                alert(data.error || 'Failed to create interview. Please try again.');
+            }
+        })
+        .catch(err => {
+            document.getElementById('loadingOverlay').style.display = 'none';
+            alert('Error creating interview session.');
+            console.error(err);
+        });
+    }
+</script>
+{% endblock %}

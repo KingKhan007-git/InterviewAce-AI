@@ -1,0 +1,90 @@
+{% extends 'base.html' %}
+
+{% block title %}{{ interview.title }} - Session | InterviewAce AI{% endblock %}
+
+{% block content %}
+<input type="hidden" id="interviewIdHidden" value="{{ interview.id }}">
+
+<div class="session-container">
+    <!-- Header info & timer -->
+    <div class="session-header">
+        <div>
+            <h2 style="font-size: 1.6rem; margin-bottom: 0.2rem;">{{ interview.title }}</h2>
+            <div style="display: flex; gap: 0.5rem; align-items: center;">
+                <span class="badge badge-info">{{ interview.role }}</span>
+                <span class="badge badge-success">{{ interview.difficulty }}</span>
+            </div>
+        </div>
+
+        <div class="timer-box">
+            <span>⏱️</span>
+            <span id="timerDisplay">00:00</span>
+        </div>
+    </div>
+
+    <!-- Progress Bar -->
+    <div style="display: flex; justify-content: space-between; font-size: 0.85rem; color: var(--text-muted); margin-bottom: 0.4rem;">
+        <span id="questionCounterText">Question 1 of {{ interview.questions|length }}</span>
+        <span>Candidate Interview Mode</span>
+    </div>
+    <div class="progress-bar-container">
+        <div id="sessionProgressFill" class="progress-bar-fill" style="width: 20%;"></div>
+    </div>
+
+    <!-- Question Cards -->
+    {% for q in interview.questions %}
+        <div class="question-step-card glass-card" data-index="{{ loop.index0 }}" data-question-id="{{ q.id }}" style="display: {% if loop.first %}block{% else %}none{% endif %};">
+            <div style="margin-bottom: 1.5rem; padding-bottom: 1rem; border-bottom: 1px solid var(--glass-border);">
+                <span class="badge badge-info" style="margin-bottom: 0.75rem;">Question {{ loop.index }}</span>
+                <h3 style="font-size: 1.3rem; font-weight: 600; line-height: 1.5;">
+                    {{ q.question_text }}
+                </h3>
+            </div>
+
+            <div class="form-group">
+                <div style="margin-bottom: 0.5rem;">
+                    <label class="form-label" style="margin-bottom: 0;">Your Answer</label>
+                </div>
+
+                <textarea class="form-control" style="min-height: 160px; font-size: 1rem;" 
+                          placeholder="Type your technical response here. Include examples, architecture choices, and key concepts..."
+                          oninput="updateCharCount(this)">{{ q.user_answer or '' }}</textarea>
+
+                <div style="display: flex; justify-content: space-between; margin-top: 0.5rem; font-size: 0.85rem; color: var(--text-muted);">
+                    <span class="char-counter">0 words (0 characters)</span>
+                    <span>Pro Tip: Provide structured, detailed answers for higher scores!</span>
+                </div>
+            </div>
+        </div>
+    {% endfor %}
+
+    <!-- Navigation Bar -->
+    <div style="display: flex; justify-content: space-between; margin-top: 2rem; gap: 1rem;">
+        <button id="prevBtn" onclick="prevQuestion()" class="btn btn-secondary" style="display: none;">
+            ← Previous Question
+        </button>
+        <div></div>
+        <div style="display: flex; gap: 1rem;">
+            <button id="nextBtn" onclick="nextQuestion()" class="btn btn-primary">
+                Next Question →
+            </button>
+            <button id="submitSessionBtn" onclick="submitFullInterview()" class="btn btn-primary" style="display: none; background: linear-gradient(135deg, var(--accent), #059669);">
+                Submit & Evaluate Interview 🚀
+            </button>
+        </div>
+    </div>
+</div>
+
+<!-- Evaluation Fullscreen Overlay -->
+<div id="evalOverlay" class="loading-overlay">
+    <div class="spinner"></div>
+    <h2 style="font-size: 2rem; margin-bottom: 0.5rem;">Evaluating Your Responses...</h2>
+    <p style="color: var(--text-muted); font-size: 1.1rem; max-width: 500px; text-align: center; line-height: 1.6;">
+        Our AI model is analyzing technical accuracy, depth, clarity, and benchmark answers to generate your comprehensive scorecard.
+    </p>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script src="{{ url_for('static', filename='js/interview.js') }}"></script>
+{% endblock %}

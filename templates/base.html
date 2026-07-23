@@ -1,0 +1,135 @@
+<!DOCTYPE html>
+<html lang="en" data-theme="dark">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>{% block title %}InterviewAce AI - Mock Interview Platform{% endblock %}</title>
+    <meta name="description" content="Master tech & HR interviews with dynamic AI mock interviews, custom resume evaluation, real-time feedback, and score analysis.">
+    
+    <!-- CSS Design System -->
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/styles.css') }}">
+    <!-- Chart.js for analytics -->
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    {% block extra_head %}{% endblock %}
+</head>
+<body>
+    <!-- Ambient Blur Background -->
+    <div class="ambient-bg">
+        <div class="blob blob-1"></div>
+        <div class="blob blob-2"></div>
+        <div class="blob blob-3"></div>
+    </div>
+
+    <!-- Navigation Header -->
+    <nav class="navbar">
+        <div class="nav-container">
+            <a href="{{ url_for('index') }}" class="brand-logo">
+                <div class="brand-icon">⚡</div>
+                <span>Interview<span style="color: var(--primary);">Ace</span> AI</span>
+            </a>
+
+            <ul class="nav-links">
+                {% if current_user %}
+                    <li>
+                        <span class="badge badge-info" style="font-size: 0.9rem; padding: 0.4rem 0.88rem; font-weight: 600;">
+                            👤 {{ current_user.username }}
+                        </span>
+                    </li>
+                    <li><a href="{{ url_for('dashboard') }}" class="nav-link {% if request.endpoint == 'dashboard' %}active{% endif %}">Dashboard</a></li>
+                    <li><a href="{{ url_for('interview_setup') }}" class="nav-link {% if request.endpoint == 'interview_setup' %}active{% endif %}">New Interview</a></li>
+                    <li><a href="{{ url_for('history') }}" class="nav-link {% if request.endpoint == 'history' %}active{% endif %}">History</a></li>
+                    <li>
+                        <button class="btn btn-secondary btn-sm" onclick="openApiKeyModal()" title="Configure Gemini API Key">
+                            🔑 {% if has_gemini_key %}<span style="color: var(--accent);">API Ready</span>{% else %}<span style="color: var(--warning);">API Demo</span>{% endif %}
+                        </button>
+                    </li>
+                    <li><a href="{{ url_for('logout') }}" class="btn btn-outline btn-sm">Logout</a></li>
+                {% else %}
+                    <li><a href="{{ url_for('login') }}" class="nav-link">Login</a></li>
+                    <li><a href="{{ url_for('register') }}" class="btn btn-primary btn-sm">Get Started</a></li>
+                {% endif %}
+                <li>
+                    <button id="themeToggleBtn" class="theme-toggle-btn" aria-label="Toggle Dark/Light Mode">🌙</button>
+                </li>
+            </ul>
+        </div>
+    </nav>
+
+    <!-- Flash Message Toasts -->
+    <div class="toast-container">
+        {% with messages = get_flashed_messages(with_categories=true) %}
+            {% if messages %}
+                {% for category, message in messages %}
+                    <div class="toast">
+                        <span>
+                            {% if category == 'success' %}✅{% elif category == 'danger' %}⚠️{% elif category == 'warning' %}🔔{% else %}ℹ️{% endif %}
+                        </span>
+                        <div style="flex: 1;">{{ message }}</div>
+                        <button onclick="dismissToast(this)" style="background:none; border:none; color:var(--text-muted); cursor:pointer; font-size:1.1rem;">&times;</button>
+                    </div>
+                {% endfor %}
+            {% endif %}
+        {% endwith %}
+    </div>
+
+    <!-- Main Workspace -->
+    <main class="main-wrapper">
+        {% block content %}{% endblock %}
+    </main>
+
+    <!-- Footer -->
+    <footer>
+        <div class="nav-container" style="justify-content: center; flex-direction: column; gap: 0.5rem;">
+            <p>&copy; 2026 <strong>InterviewAce AI</strong>. Dynamic AI Coaching & Mock Interview Platform.</p>
+            <p style="font-size: 0.8rem; color: var(--text-subtle);">Powered by Google Gemini API & Flask Backend.</p>
+        </div>
+    </footer>
+
+    <!-- Gemini API Key Config Modal -->
+    <div id="apiKeyModal" style="display: none; position: fixed; top: 0; left: 0; width: 100vw; height: 100vh; background: rgba(0,0,0,0.7); backdrop-filter: blur(10px); z-index: 1000; align-items: center; justify-content: center;">
+        <div class="glass-card" style="max-width: 480px; width: 90%;">
+            <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 1rem;">
+                <h3 style="display: flex; align-items: center; gap: 0.5rem;">🔑 Configure Gemini API Key</h3>
+                <button onclick="closeApiKeyModal()" style="background: none; border: none; font-size: 1.5rem; color: var(--text-muted); cursor: pointer;">&times;</button>
+            </div>
+            <p style="font-size: 0.9rem; color: var(--text-muted); margin-bottom: 1.25rem;">
+                Enter your Google Gemini API key to enable dynamic live Gemini AI question generation and evaluation. If empty, InterviewAce AI will automatically run in simulated fallback mode.
+            </p>
+            <div class="form-group">
+                <label class="form-label">Gemini API Key</label>
+                <input type="password" id="apiKeyInput" class="form-control" placeholder="AIzaSy..." value="">
+            </div>
+            <div style="display: flex; justify-content: flex-end; gap: 0.75rem; margin-top: 1.5rem;">
+                <button onclick="closeApiKeyModal()" class="btn btn-secondary btn-sm">Cancel</button>
+                <button onclick="saveApiKey()" class="btn btn-primary btn-sm">Save Key</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Scripts -->
+    <script src="{{ url_for('static', filename='js/theme.js') }}"></script>
+    <script>
+        function openApiKeyModal() {
+            document.getElementById('apiKeyModal').style.display = 'flex';
+        }
+        function closeApiKeyModal() {
+            document.getElementById('apiKeyModal').style.display = 'none';
+        }
+        function saveApiKey() {
+            const key = document.getElementById('apiKeyInput').value;
+            fetch('/api/settings/update-api-key', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ api_key: key })
+            })
+            .then(res => res.json())
+            .then(data => {
+                alert(data.message || 'API Key saved successfully!');
+                closeApiKeyModal();
+                window.location.reload();
+            });
+        }
+    </script>
+    {% block extra_js %}{% endblock %}
+</body>
+</html>

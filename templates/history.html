@@ -1,0 +1,119 @@
+{% extends 'base.html' %}
+
+{% block title %}Interview History - InterviewAce AI{% endblock %}
+
+{% block content %}
+<div class="glass-card" style="margin-bottom: 2rem;">
+    <div style="display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 1rem;">
+        <div>
+            <h1 style="font-size: 2.2rem; margin-bottom: 0.3rem;">📜 Interview History</h1>
+            <p style="color: var(--text-muted); font-size: 1rem;">Review past mock interview scores, feedback logs, and technical questions.</p>
+        </div>
+        <a href="{{ url_for('interview_setup') }}" class="btn btn-primary">
+            + New Mock Interview
+        </a>
+    </div>
+</div>
+
+<div class="glass-card">
+    {% if interviews %}
+        <div class="table-responsive">
+            <table class="custom-table">
+                <thead>
+                    <tr>
+                        <th>Date & Time</th>
+                        <th>Title & Role</th>
+                        <th>Type</th>
+                        <th>Difficulty</th>
+                        <th>Overall Score</th>
+                        <th>Status</th>
+                        <th>Actions</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for interview in interviews %}
+                        <tr id="row_interview_{{ interview.id }}">
+                            <td>{{ interview.created_at.strftime('%b %d, %Y - %I:%M %p') }}</td>
+                            <td>
+                                <strong>{{ interview.title }}</strong><br>
+                                <span style="font-size: 0.8rem; color: var(--text-muted);">{{ interview.role }}</span>
+                            </td>
+                            <td>
+                                {% if interview.interview_type == 'resume' %}
+                                    <span class="badge badge-info">📄 Resume</span>
+                                {% else %}
+                                    <span class="badge badge-success">🎯 Role</span>
+                                {% endif %}
+                            </td>
+                            <td>{{ interview.difficulty }}</td>
+                            <td>
+                                {% if interview.overall_score != none %}
+                                    <strong style="font-size: 1.1rem; color: {% if interview.overall_score >= 80 %}var(--accent){% elif interview.overall_score >= 65 %}var(--warning){% else %}var(--danger){% endif %};">
+                                        {{ interview.overall_score }} / 100
+                                    </strong>
+                                {% else %}
+                                    <span style="color: var(--text-muted);">-</span>
+                                {% endif %}
+                            </td>
+                            <td>
+                                {% if interview.status == 'completed' %}
+                                    <span class="badge badge-success">Completed</span>
+                                {% else %}
+                                    <span class="badge badge-warning">In Progress</span>
+                                {% endif %}
+                            </td>
+                            <td>
+                                <div style="display: flex; gap: 0.5rem; align-items: center;">
+                                    {% if interview.status == 'completed' %}
+                                        <a href="{{ url_for('interview_report', interview_id=interview.id) }}" class="btn btn-primary btn-sm">
+                                            View Report
+                                        </a>
+                                    {% else %}
+                                        <a href="{{ url_for('interview_session', interview_id=interview.id) }}" class="btn btn-secondary btn-sm">
+                                            Resume
+                                        </a>
+                                    {% endif %}
+                                    <button onclick="deleteInterviewSession({{ interview.id }})" class="btn btn-outline btn-sm" style="color: var(--danger); border-color: var(--danger);" title="Delete Session">
+                                        🗑️
+                                    </button>
+                                </div>
+                            </td>
+                        </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+    {% else %}
+        <div style="text-align: center; padding: 4rem 1rem;">
+            <div style="font-size: 3.5rem; margin-bottom: 1rem;">📑</div>
+            <h3>No Past Interview History Found</h3>
+            <p style="color: var(--text-muted); margin-bottom: 1.5rem;">Start practicing mock interviews to populate your performance history and analytics!</p>
+            <a href="{{ url_for('interview_setup') }}" class="btn btn-primary btn-lg">
+                Create First Mock Interview
+            </a>
+        </div>
+    {% endif %}
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+    function deleteInterviewSession(id) {
+        if (!confirm('Are you sure you want to delete this interview record? This cannot be undone.')) return;
+        
+        fetch(`/api/interview/${id}`, {
+            method: 'DELETE'
+        })
+        .then(res => res.json())
+        .then(data => {
+            if (data.success) {
+                const row = document.getElementById(`row_interview_${id}`);
+                if (row) row.remove();
+            } else {
+                alert('Failed to delete interview session.');
+            }
+        })
+        .catch(err => alert('Error deleting interview session.'));
+    }
+</script>
+{% endblock %}
