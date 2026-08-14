@@ -1,5 +1,6 @@
 import os
 import functools
+from datetime import timedelta
 from flask import (
     Flask, render_template, request, redirect, url_for, flash, session, jsonify
 )
@@ -18,6 +19,7 @@ def create_app():
     
     # App configuration
     app.config['SECRET_KEY'] = os.environ.get('SECRET_KEY', 'interviewace_secret_key_dev_2026')
+    app.config['PERMANENT_SESSION_LIFETIME'] = timedelta(days=60)
     db_path = os.path.join(app.instance_path, 'interviewace.db')
     app.config['SQLALCHEMY_DATABASE_URI'] = os.environ.get('DATABASE_URL', f'sqlite:///{db_path}')
     app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = False
@@ -107,12 +109,12 @@ def create_app():
 
             from sqlalchemy import func
             if User.query.filter(func.lower(User.username) == username.lower()).first():
-                flash('Username already taken. Please choose another.', 'danger')
-                return render_template('auth/register.html')
+                flash('Username already taken. If this is your existing account, please sign in below to view your interview history.', 'warning')
+                return redirect(url_for('login'))
 
             if User.query.filter(func.lower(User.email) == email.lower()).first():
-                flash('Email already registered. Please login.', 'danger')
-                return render_template('auth/register.html')
+                flash('Email already registered. Please sign in below to access your saved interview history.', 'warning')
+                return redirect(url_for('login'))
 
             new_user = User(username=username, email=email)
             new_user.set_password(password)
@@ -120,6 +122,7 @@ def create_app():
             db.session.commit()
 
             session['user_id'] = new_user.id
+            session.permanent = True
             flash(f'Account created successfully! Welcome to InterviewAce AI, {new_user.username}!', 'success')
             return redirect(url_for('dashboard'))
 
@@ -134,7 +137,6 @@ def create_app():
         if request.method == 'POST':
             email_or_user = request.form.get('email_or_user', '').strip()
             password = request.form.get('password', '')
-            remember_me = request.form.get('remember_me')
 
             if not email_or_user or not password:
                 flash('Please enter both your email/username and password.', 'warning')
@@ -155,8 +157,7 @@ def create_app():
                 return render_template('auth/login.html')
 
             session['user_id'] = user.id
-            if remember_me:
-                session.permanent = True
+            session.permanent = True
             
             flash(f'Welcome back, {user.username}!', 'success')
             next_page = request.args.get('next')

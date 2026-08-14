@@ -93,6 +93,8 @@ function startTimer() {
     }, 1000);
 }
 
+let evalTimer = null;
+
 // Submit Full Interview
 function submitFullInterview() {
     saveCurrentAnswer();
@@ -107,9 +109,25 @@ function submitFullInterview() {
         answers[qId] = ans;
     });
 
-    // Display loading overlay
+    // Display loading overlay with dynamic steps
     const overlay = document.getElementById('evalOverlay');
+    const pText = overlay ? overlay.querySelector('p') : null;
     if (overlay) overlay.style.display = 'flex';
+
+    const steps = [
+        "🤖 Sending answers to Gemini AI...",
+        "📊 Analyzing correctness, depth & technical accuracy...",
+        "💪 Identifying key candidate strengths & growth areas...",
+        "🏆 Generating score out of 100 & benchmark report..."
+    ];
+    let idx = 0;
+    if (pText) pText.innerText = steps[0];
+
+    if (evalTimer) clearInterval(evalTimer);
+    evalTimer = setInterval(() => {
+        idx = (idx + 1) % steps.length;
+        if (pText) pText.innerText = steps[idx];
+    }, 1500);
 
     fetch(`/api/interview/${interviewId}/submit`, {
         method: 'POST',
@@ -118,6 +136,7 @@ function submitFullInterview() {
     })
     .then(res => res.json())
     .then(data => {
+        if (evalTimer) clearInterval(evalTimer);
         if (data.success) {
             window.location.href = data.report_url;
         } else {
@@ -126,6 +145,7 @@ function submitFullInterview() {
         }
     })
     .catch(err => {
+        if (evalTimer) clearInterval(evalTimer);
         if (overlay) overlay.style.display = 'none';
         alert('Network error submitting interview.');
         console.error(err);

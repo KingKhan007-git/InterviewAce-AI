@@ -99,14 +99,27 @@ Do not include any intro markdown text outside the JSON array block.
     if sdk_type and client:
         try:
             if sdk_type == "genai":
+                from google.genai import types
                 response = client.models.generate_content(
                     model="gemini-2.5-flash",
                     contents=prompt,
+                    config=types.GenerateContentConfig(
+                        temperature=0.7,
+                        max_output_tokens=1024,
+                        response_mime_type="application/json"
+                    )
                 )
                 raw_text = response.text
             else: # generativeai legacy
                 model = client.GenerativeModel("gemini-1.5-flash")
-                response = model.generate_content(prompt)
+                response = model.generate_content(
+                    prompt,
+                    generation_config={
+                        "temperature": 0.7,
+                        "max_output_tokens": 1024,
+                        "response_mime_type": "application/json"
+                    }
+                )
                 raw_text = response.text
 
             clean_text = _clean_json_response(raw_text)
@@ -133,38 +146,43 @@ def generate_resume_questions(resume_text, count=5):
     """
     sdk_type, client = _get_genai_client()
 
-    prompt = f"""You are a senior hiring manager. Analyze the following candidate resume text and extract key skills, tools, and projects.
-Generate exactly {count} targeted interview questions tailored to the candidate's actual experience, tech stack, and background mentioned in the resume.
+    prompt = f"""You are a senior hiring manager. Analyze the candidate resume text below and extract key skills, tools, and projects.
+Generate exactly {count} targeted interview questions tailored to the candidate's actual experience and tech stack.
 
 Resume Text:
 \"\"\"
-{resume_text[:4000]}
+{resume_text[:3500]}
 \"\"\"
 
 Return ONLY a valid JSON array of objects with keys:
-- "question_text": Tailored interview question referencing specific tools, experiences or domain knowledge from the resume.
-- "model_answer": Ideal response key points expected.
-
-JSON format requirement:
-[
-  {{
-    "question_text": "...",
-    "model_answer": "..."
-  }}
-]
+- "question_text": Tailored interview question.
+- "model_answer": Ideal response key points.
 """
 
     if sdk_type and client:
         try:
             if sdk_type == "genai":
+                from google.genai import types
                 response = client.models.generate_content(
                     model="gemini-2.5-flash",
                     contents=prompt,
+                    config=types.GenerateContentConfig(
+                        temperature=0.7,
+                        max_output_tokens=1024,
+                        response_mime_type="application/json"
+                    )
                 )
                 raw_text = response.text
             else:
                 model = client.GenerativeModel("gemini-1.5-flash")
-                response = model.generate_content(prompt)
+                response = model.generate_content(
+                    prompt,
+                    generation_config={
+                        "temperature": 0.7,
+                        "max_output_tokens": 1024,
+                        "response_mime_type": "application/json"
+                    }
+                )
                 raw_text = response.text
 
             clean_text = _clean_json_response(raw_text)
@@ -257,14 +275,27 @@ Do not include any text outside the JSON object.
     if sdk_type and client:
         try:
             if sdk_type == "genai":
+                from google.genai import types
                 response = client.models.generate_content(
                     model="gemini-2.5-flash",
                     contents=prompt,
+                    config=types.GenerateContentConfig(
+                        temperature=0.6,
+                        max_output_tokens=1500,
+                        response_mime_type="application/json"
+                    )
                 )
                 raw_text = response.text
             else:
                 model = client.GenerativeModel("gemini-1.5-flash")
-                response = model.generate_content(prompt)
+                response = model.generate_content(
+                    prompt,
+                    generation_config={
+                        "temperature": 0.6,
+                        "max_output_tokens": 1500,
+                        "response_mime_type": "application/json"
+                    }
+                )
                 raw_text = response.text
 
             clean_text = _clean_json_response(raw_text)

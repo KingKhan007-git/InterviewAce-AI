@@ -201,23 +201,44 @@
         submitCreateInterview(formData);
     });
 
+    let stepTimer = null;
     function submitCreateInterview(formData) {
-        document.getElementById('loadingOverlay').style.display = 'flex';
+        const overlay = document.getElementById('loadingOverlay');
+        const subtitle = document.getElementById('loadingSubtitle');
+        overlay.style.display = 'flex';
+
+        const steps = [
+            "⚡ Connecting to Gemini AI...",
+            "🎯 Formulating role-specific & difficulty-adjusted questions...",
+            "✨ Generating ideal benchmark answers...",
+            "🚀 Finalizing your interactive room..."
+        ];
+        let stepIdx = 0;
+        if (subtitle) subtitle.innerText = steps[0];
+
+        if (stepTimer) clearInterval(stepTimer);
+        stepTimer = setInterval(() => {
+            stepIdx = (stepIdx + 1) % steps.length;
+            if (subtitle) subtitle.innerText = steps[stepIdx];
+        }, 1400);
+
         fetch('/api/interview/create', {
             method: 'POST',
             body: formData
         })
         .then(res => res.json())
         .then(data => {
+            if (stepTimer) clearInterval(stepTimer);
             if (data.success) {
                 window.location.href = data.redirect_url;
             } else {
-                document.getElementById('loadingOverlay').style.display = 'none';
+                overlay.style.display = 'none';
                 alert(data.error || 'Failed to create interview. Please try again.');
             }
         })
         .catch(err => {
-            document.getElementById('loadingOverlay').style.display = 'none';
+            if (stepTimer) clearInterval(stepTimer);
+            overlay.style.display = 'none';
             alert('Error creating interview session.');
             console.error(err);
         });

@@ -20,12 +20,21 @@
     </p>
 
     <div style="display: flex; gap: 1rem; justify-content: center; flex-wrap: wrap;">
-        <a href="{{ url_for('register') }}" class="btn btn-primary btn-lg">
-            Start Free Mock Interview ⚡
-        </a>
-        <a href="{{ url_for('login') }}" class="btn btn-secondary btn-lg">
-            Candidate Login
-        </a>
+        {% if current_user %}
+            <a href="{{ url_for('dashboard') }}" class="btn btn-primary btn-lg">
+                Go to Dashboard 🚀
+            </a>
+            <a href="{{ url_for('interview_setup') }}" class="btn btn-secondary btn-lg">
+                Start New Interview ⚡
+            </a>
+        {% else %}
+            <a href="{{ url_for('login') }}" class="btn btn-primary btn-lg">
+                Sign In to Your Account 🔑
+            </a>
+            <a href="{{ url_for('register') }}" class="btn btn-secondary btn-lg">
+                Create Free Account ⚡
+            </a>
+        {% endif %}
     </div>
 </section>
 
